@@ -1,0 +1,48 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Matlab
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Hesham
+    family-names: Abdelfattah
+    email: abdelfhm@mail.uc.edu
+  - given-names: Peter
+    family-names: Stechlinski
+    email: peter.stechlinski@maine.edu
+  - given-names: Sameh
+    family-names: Eisa
+    email: eisash@ucmail.uc.edu
+abstract: >2-
+   In this paper, we extend the method known as
+  sensitivity rank condition (SERC), which tests for
+  identifiability
+
+  of smooth input-output systems, to a broader class of
+  systems.
+
+  Particularly, we build on our recently developed theory
+  and
+
+  method of Lexicographic-SERC (L-SERC) to achieve an iden-
+
+  tifiability test for differential algebraic equation (DAE)
+  systems
+
+  for the first time, including nonsmooth systems.
+  Additionally, we
+
+  propose a mechanism, based on combining the L-SERC test
+  and
+
+  Latin hypercube sampling, for studying global
+  identifiability.
+
+  Capitalizing on this, we develop a parameter reduction
+  scheme
+
+  for nonsmooth DAE systems.
