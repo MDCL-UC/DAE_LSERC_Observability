@@ -18,7 +18,6 @@ optODE=odeset('Mass',M_DAE,'RelTol',1e-8);
 T_f=[];
 T_P_Matrix_f=[];
 for pp = 1:length(P_set)
-%     clearvars -except P_set pp 
     Param = cell2mat(P_set(pp));
     % Primary probing directions within the directions matrix P
     M_set = {[[1 0 0 0]',eye(4)],[[0 1 0 0]',eye(4)],[[0 0 1 0]',eye(4)],[[0 0 0 1]',eye(4)]...
@@ -67,9 +66,6 @@ for pp = 1:length(P_set)
         t_star = 1/Param(1)*log(Param(2)/(Param(2)+Param(3)*Param(4)));
         tspan = t0:1/(2*N):tf;
         [Time,Z] = ode15s(@(t,Z) dynamics(t,Z,Param,M),tspan,Z0(:),optODE);
-%         x_exact_1 = (Param(3)*Param(4)+Param(2))*exp(Param(1)*tspan)-Param(2);
-%         tspan2 = t_star:1/(2*N):0.5;
-%         x_exact_2 = (Param(3)*Param(4)+Param(2))*exp(Param(1)*tspan2)-Param(2);
         [T_twin_probing,Z_twin_probing] = ode15s(@(t_twin_probing,Z_twin_probing) dynamics(t_twin_probing,Z_twin_probing,Param,M_twin_probing),tspan,Z0_twin_probing(:),optODE);
         StepCount = length(Time);
 
@@ -127,17 +123,6 @@ for pp = 1:length(P_set)
                 P_sing_vec_twin_probing = [P_sing_vec_twin_probing V_L_twin_probing(:,i)];
             end
         end
-%         [R,p] = rref(P_sing_vec_twin_probing',1e-10);
-%         C = num2cell( p , 1 );
-%         if k==1&&k_twin_prob==1
-%             Theta_lni = p;
-%         else
-%         for i=1:length(C)
-%             if find(Theta_li==1)~= 1
-%                 Theta_lni = [Theta_lni C];
-%             end
-%         end
-%         end
         
         if q>0
             %Save a record of the directions that resulted in a rank deficient LSERC
@@ -299,7 +284,7 @@ end
    plot(tspan,x_avg,'Color',[0.4660 0.6740 0.1880]);
    
    xlabel('$t$','Interpreter','latex')
-   ylabel('$y(t;\theta)$','Interpreter','latex')
+   ylabel('$y(t; \theta_r)$','Interpreter','latex')
    legend('$y(t;\theta_{true})$','$y(t;\theta_{est})$','$y(t;\theta_{initial})$','$y(t;\theta_{avg})$','Interpreter','latex','Location','northwest')
    
 function dZdt = dynamics(t,Z,Param,M)
@@ -333,7 +318,6 @@ dZdt = [dxdt;dwdt;dXdt;dWdt];
 end
 function p_est = param_est_oc(Param_reduced,Param_fixed,tspan,output_samples)
 Algorithm = 'sqp';
-% pL = -Param_reduced*1000; pU = Param_reduced*1000;
 optNLP = optimset( 'Algorithm',Algorithm,'Hessian','bfgs','LargeScale', 'off', 'GradObj', 'on', 'GradConstr', 'off',...
     'DerivativeCheck', 'off', 'Display', 'iter-detailed', 'TolX', 1e-10,...
     'TolFun', 1e-10, 'TolCon', 1e-10, 'MaxFunEval', 30000, 'Maxiter', 1e+03 );
@@ -366,12 +350,10 @@ function [ J, dJ ] = obj(tspan,z0,Param_reduced,Param_fixed,output_samples)
 
 function [ c, ceq, dc, dceq ] = ctr(tspan,z0,Param_reduced,Param_fixed,output_samples) %no constraints
     if nargout == 2
-%         f = fun2( tspan,z0,Param_reduced,output_samples);
         f = fun( tspan,z0,Param_reduced,Param_fixed,output_samples);
         ceq = [];
         c = [];
     else
-%         [f,df] = fun2( tspan,z0,Param_reduced,output_samples);
         [f,df] = fun( tspan,z0,Param_reduced,Param_fixed,output_samples);
         ceq = [];
         dceq = [];
@@ -399,19 +381,7 @@ function [ f, df ] = fun( tspan,z0,Param_reduced,Param_fixed,output_samples)
 
 
 end
-function [ f, df ] = fun2( tspan,z0,Param_reduced,output_samples)
-        k_directions = 3;
-        M_DAE=eye(3+3*k_directions);
-        M_DAE(3,3)=0;
-        for i =(3+2*k_directions)+1: (3+3*k_directions)
-            M_DAE(i,i)=0;
-        end
-        optODE=odeset('Mass',M_DAE,'RelTol',1e-8);
-        [time_span,Z] = ode15s(@(t,Z) dynamics_reduced2(t,Z,Param_reduced,output_samples),tspan,z0(:),optODE);
-        f = Z(end,2);
-        df = Z(end,6:7);
-        %         solpts = deval(Z,time_span);
-end
+
 function dZdt = dynamics_reduced(t,Z,Param,Param_fixed)
 t_star = 1/Param(1)*log(Param(2)/(Param(2)+Param_fixed(1)*Param(3)));
 M = eye(3);
@@ -440,36 +410,4 @@ if t > t_star
     dWdt = -(-X(:) + W(:) - M(2,:)');
 end
 dZdt = [dxdt;dwdt;dXdt;dWdt];
-end
-
-function dZdt = dynamics_reduced2(t,Z,Param,Param_fixed,output_samples)
-    M = eye(2);
-    k_directions = size(M,2);
-    x = Z(1);
-    aux = Z(2);
-    w = Z(3);
-
-    p1 = Param(1);
-    p2 = Param(2);
-
-    dxdt = p1*w;
-    dauxdt = (x-output_samples(1))^2;
-    for i=2:size(output_samples,2)
-        output_sample = output_samples(i);
-        dauxdt = dauxdt + (x-output_sample)^2;
-    end
-    dwdt = abs(x)+w-p2;
-
-    X = Z(3+1:3+2*k_directions);
-    W = Z(3+2*k_directions+1:3+3*k_directions);
-    dXdt = zeros(4,1);
-    dXdt(1:2) = M(1,:)'*w + p1*W(:);
-    dXdt(3:4) = 2*(x-output_samples(1))*X(1:2);
-   for i=2:size(output_samples,2)
-        output_sample = output_samples(i);
-        dXdt(3:4) = dXdt(3:4) + 2*(x-output_sample)*X(1:2);
-    end
-    dWdt = fsign(x,X(1:2))*X(1:2) + W(:) - M(2,:)';
-
-    dZdt = [dxdt;dauxdt;dwdt;dXdt;dWdt];
 end
