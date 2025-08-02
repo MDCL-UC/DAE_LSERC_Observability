@@ -1,2 +1,1 @@
-This repo is related to the paper Parametric Identifiability and Reduction of Nonsmooth Differential
-Algebraic Equation Systems. There are 2 Matlab files, the first is for example1/algorithm1 and the second for example2/algorithm2.
+This repo contains the MATLAB codes related to the paper Observability and State Estimation for Smooth and Nonsmooth Differential Algebraic Equation Systems. There are three MATLAB files, the first is for the L-SERC observability test when applied to a Wind turbine power system with the voltage of the system being the output function. The second and third are the for the Sensitivity-based EKF proposed in the paper, for two different output functions.
